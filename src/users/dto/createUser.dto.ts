@@ -1,12 +1,13 @@
-import { IsEmail, IsNotEmpty, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, MinLength } from 'class-validator';
+import { EAuth } from 'src/types';
 
 export class CreateUserDto {
   @IsNotEmpty()
-  @MinLength(2, { message: 'Username must be more then 2 symbols' })
+  @MinLength(2, { message: EAuth.VALIDATE_USERNAME })
   username: string;
 
-  @IsNotEmpty()
-  @MinLength(8, { message: 'Password must be more than 8 symbols' })
+  @IsOptional()
+  @MinLength(8, { message: EAuth.VALIDATE_PASSWORD })
   password: string;
 
   @IsNotEmpty()

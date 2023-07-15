@@ -5,6 +5,7 @@ import { User } from './entity/user.entity';
 import { CreateUserDto } from './dto/createUser.dto';
 import { hash } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { EAuth } from 'src/types';
 
 @Injectable()
 export class UsersService {
@@ -19,14 +20,14 @@ export class UsersService {
     });
 
     if (existUser) {
-      throw new BadRequestException('User with this email already exist');
+      throw new BadRequestException(EAuth.USER_EXIST);
     }
-
-    const hashedPassword = await hash(createUserDto.password, 12);
 
     const user = await this.userRepository.save({
       ...createUserDto,
-      password: hashedPassword,
+      password: createUserDto.password
+        ? await hash(createUserDto.password, 12)
+        : null,
     });
 
     const { id, username, email } = user;
@@ -36,9 +37,30 @@ export class UsersService {
     return { id, username, email, token };
   }
 
-  async findOneByEmail(email: string) {
-    return await this.userRepository.findOne({
+  async findOneByEmail(email: string, isGoogle: boolean) {
+    const user = await this.userRepository.findOne({
       where: { email },
     });
+
+    if (!user && !isGoogle) {
+      throw new BadRequestException(EAuth.USER_NOT_EXIST);
+    }
+
+    return user;
+  }
+
+  async findOneById(id: number) {
+    const user = await this.userRepository.findOne({ where: { id } });
+
+    if (!user) {
+      throw new BadRequestException(EAuth.USER_NOT_EXIST);
+    }
+
+    return user;
+  }
+
+  async updateUser(user: User): Promise<User> {
+    const updatedUser = await this.userRepository.save(user);
+    return updatedUser;
   }
 }
