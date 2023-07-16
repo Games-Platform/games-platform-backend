@@ -29,8 +29,8 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req, @Res({ passthrough: true }) res) {
-    const { access_token, status } = await this.authService.login(req, res);
-    return { access_token, status };
+    const { access_token, message } = await this.authService.login(req, res);
+    return { access_token, message };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -54,10 +54,6 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Res({ passthrough: true }) res) {
-    res.clearCookie('access_token');
-
-    return {
-      message: 'success logout',
-    };
+    return this.authService.logout(res);
   }
 }

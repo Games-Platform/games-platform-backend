@@ -10,4 +10,7 @@ export enum EAuth {
   USER_NOT_EXIST = "This user doesn't exist yet",
   VALIDATE_USERNAME = 'Username must be more then 2 symbols',
   VALIDATE_PASSWORD = 'Password must be more than 8 symbols',
+  REGISTER_SUCCESS = 'Register successful',
+  LOGIN_SUCCESS = 'Logged in succesful',
+  LOGOUT_SUCCESS = 'Logout successful',
 }
