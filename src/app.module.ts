@@ -3,6 +3,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 import { User } from './users/entity/user.entity';
+import { AuthModule } from './auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
+import { GoogleStrategy } from './auth/strategies/google.strategy';
 
 @Module({
   imports: [
@@ -22,8 +25,10 @@ import { User } from './users/entity/user.entity';
       inject: [ConfigService],
     }),
     UsersModule,
+    AuthModule,
+    PassportModule.register({ session: true }),
   ],
   controllers: [],
-  providers: [],
+  providers: [GoogleStrategy],
 })
 export class AppModule {}
