@@ -21,20 +21,18 @@ export class AuthService {
   }
 
   async validateUser(email: string, pass: string): Promise<any> {
-    try {
-      const user = await this.usersService.findOneByEmail(email, false);
+    const user = await this.usersService.findOneByEmail(email, false);
 
-      if (!pass || !user.password) {
-        throw new BadRequestException(EAuth.INVALID_CRENEDTIALS);
-      }
-
-      const isComparedPassword = compare(user.password, pass);
-      if (user && isComparedPassword) {
-        return user;
-      }
-    } catch (err) {
-      throw new BadRequestException(err);
+    if (!pass || !user.password) {
+      throw new BadRequestException(EAuth.INVALID_CRENEDTIALS);
     }
+
+    const isComparedPassword = await compare(pass, user.password);
+
+    if (!user || !isComparedPassword) {
+      throw new BadRequestException(EAuth.INVALID_CRENEDTIALS);
+    }
+    return user;
   }
 
   async saveGoogleUser(displayName: string, email: string): Promise<any> {
@@ -74,7 +72,7 @@ export class AuthService {
         },
       };
 
-      const loggedUser = await this.login(currentRequest, response);
+      const loggedUser = await this.login(currentRequest, response, true);
       if (loggedUser) {
         const redirectUrl = this.configService.get('FRONTEND_URL_DEV');
         response.redirect(redirectUrl);
@@ -85,45 +83,53 @@ export class AuthService {
     }
   }
 
-  async register(createUserDto: CreateUserDto) {
+  async register(createUserDto: CreateUserDto, response) {
     await this.usersService.createUser(createUserDto);
 
-    return { message: EAuth.REGISTER_SUCCESS };
+    const user = await this.usersService.findOneByEmail(
+      createUserDto.email,
+      false,
+    );
+    const { id, username, email } = user;
+    const payload = {
+      email,
+      id,
+      username,
+    };
+    const token = this.jwtService.sign(payload);
+
+    response.cookie('access_token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      expires: new Date(Date.now() + 1 * 24 * 60 * 1000),
+    });
+
+    return { access_token: token, message: EAuth.REGISTER_SUCCESS };
   }
 
-  async login(request, response) {
-    try {
-      const user = await this.usersService.findOneByEmail(
-        request.user.email,
-        true,
-      );
+  async login(request, response, isGoogle) {
+    const user = await this.usersService.findOneByEmail(
+      request.user.email,
+      isGoogle,
+    );
 
-      if (!user) {
-        throw new BadRequestException(EAuth.INVALID_CRENEDTIALS);
-      }
+    const { id, username, email } = user;
+    const payload = {
+      email,
+      id,
+      username,
+    };
+    const token = this.jwtService.sign(payload);
 
-      const { id, username, email } = user;
-      const payload = {
-        email,
-        id,
-        username,
-      };
-      const token = this.jwtService.sign(payload);
+    response.cookie('access_token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'lax',
+      expires: new Date(Date.now() + 1 * 24 * 60 * 1000),
+    });
 
-      if (!token) {
-        throw new BadRequestException(EAuth.INVALID_CRENEDTIALS);
-      }
-      response.cookie('access_token', token, {
-        httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
-        expires: new Date(Date.now() + 1 * 24 * 60 * 1000),
-      });
-
-      return { access_token: token, message: EAuth.LOGIN_SUCCESS };
-    } catch (err) {
-      throw new BadRequestException(err);
-    }
+    return { access_token: token, message: EAuth.LOGIN_SUCCESS };
   }
 
   logout(res) {
