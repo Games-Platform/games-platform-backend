@@ -22,14 +22,21 @@ export class AuthController {
 
   @Post('register')
   @UsePipes(new ValidationPipe())
-  register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
+  register(
+    @Body() createUserDto: CreateUserDto,
+    @Res({ passthrough: true }) res,
+  ) {
+    return this.authService.register(createUserDto, res);
   }
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Request() req, @Res({ passthrough: true }) res) {
-    const { access_token, message } = await this.authService.login(req, res);
+    const { access_token, message } = await this.authService.login(
+      req,
+      res,
+      false,
+    );
     return { access_token, message };
   }
 

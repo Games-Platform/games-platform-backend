@@ -32,7 +32,7 @@ export class UsersService {
 
     const { id, username, email } = user;
 
-    const token = this.jwtService.sign({ email });
+    const token = this.jwtService.sign({ id, username, email });
 
     return { id, username, email, token };
   }
@@ -43,7 +43,7 @@ export class UsersService {
     });
 
     if (!user && !isGoogle) {
-      throw new BadRequestException(EAuth.USER_NOT_EXIST);
+      throw new BadRequestException(EAuth.INVALID_CRENEDTIALS);
     }
 
     return user;
