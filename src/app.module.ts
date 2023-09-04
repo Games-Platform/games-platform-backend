@@ -6,6 +6,8 @@ import { User } from './users/entity/user.entity';
 import { AuthModule } from './auth/auth.module';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './auth/strategies/google.strategy';
+import { GamesModule } from './games/games.module';
+import { Game } from './games/entity/game.entity';
 
 @Module({
   imports: [
@@ -19,7 +21,7 @@ import { GoogleStrategy } from './auth/strategies/google.strategy';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_NAME'),
-        entities: [User],
+        entities: [User, Game],
         synchronize: true,
       }),
       inject: [ConfigService],
@@ -27,6 +29,7 @@ import { GoogleStrategy } from './auth/strategies/google.strategy';
     UsersModule,
     AuthModule,
     PassportModule.register({ session: true }),
+    GamesModule,
   ],
   controllers: [],
   providers: [GoogleStrategy],

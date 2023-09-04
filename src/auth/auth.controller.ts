@@ -43,7 +43,8 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
-    return req.user;
+    const { id, email, username } = req.user;
+    return { id, email, username };
   }
 
   @UseGuards(GoogleAuthGuard)
