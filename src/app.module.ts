@@ -23,6 +23,7 @@ import { Game } from './games/entity/game.entity';
         database: configService.get('DB_NAME'),
         entities: [User, Game],
         synchronize: true,
+        ssl: true
       }),
       inject: [ConfigService],
     }),
