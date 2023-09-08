@@ -14,3 +14,8 @@ export enum EAuth {
   LOGIN_SUCCESS = 'Logged in succesful',
   LOGOUT_SUCCESS = 'Logout successful',
 }
+
+export interface IGameRequest {
+  game_id: string;
+  value: number;
+}
