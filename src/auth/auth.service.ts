@@ -1,11 +1,16 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcrypt';
-import { EAuth } from 'src/types';
+import { EAuth, IUser } from 'src/types';
 import { CreateUserDto } from 'src/users/dto/createUser.dto';
 
 import { UsersService } from 'src/users/users.service';
+import { commonCookieOptions } from 'src/utils/cookieOptions';
 
 @Injectable()
 export class AuthService {
@@ -20,22 +25,20 @@ export class AuthService {
     return user;
   }
 
-  async validateUser(email: string, pass: string): Promise<any> {
+  async validateUser(email: string, pass: string) {
     const user = await this.usersService.findOneByEmail(email, false);
-
-    if (!pass || !user.password) {
-      throw new BadRequestException(EAuth.INVALID_CRENEDTIALS);
-    }
 
     const isComparedPassword = await compare(pass, user.password);
 
-    if (!user || !isComparedPassword) {
-      throw new BadRequestException(EAuth.INVALID_CRENEDTIALS);
+    if (user && isComparedPassword) {
+      const { password, ...rest } = user;
+
+      return rest;
     }
-    return user;
+    return null;
   }
 
-  async saveGoogleUser(displayName: string, email: string): Promise<any> {
+  async saveGoogleUser(displayName: string, email: string) {
     try {
       const existingUser = await this.usersService.findOneByEmail(email, true);
 
@@ -58,32 +61,7 @@ export class AuthService {
     }
   }
 
-  async googleLogin(request, response) {
-    try {
-      await this.saveGoogleUser(
-        request.user.displayName,
-        request.user.emails[0].value,
-      );
-
-      const currentRequest = {
-        user: {
-          username: request.user.displayName,
-          email: request.user.emails[0].value,
-        },
-      };
-
-      const loggedUser = await this.login(currentRequest, response, true);
-      if (loggedUser) {
-        const redirectUrl = this.configService.get('FRONTEND_URL_DEV');
-        response.redirect(redirectUrl);
-        return;
-      }
-    } catch (err) {
-      throw new BadRequestException(err);
-    }
-  }
-
-  async register(createUserDto: CreateUserDto, response) {
+  async register(createUserDto: CreateUserDto) {
     await this.usersService.createUser(createUserDto);
 
     const user = await this.usersService.findOneByEmail(
@@ -96,19 +74,13 @@ export class AuthService {
       id,
       username,
     };
-    const token = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '30m' });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
 
-    response.cookie('access_token', token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    });
-
-    return { access_token: token, message: EAuth.REGISTER_SUCCESS };
+    return { accessToken, refreshToken, message: EAuth.REGISTER_SUCCESS };
   }
 
-  async login(request, response, isGoogle) {
+  async login(request, isGoogle) {
     const user = await this.usersService.findOneByEmail(
       request.user.email,
       isGoogle,
@@ -120,23 +92,59 @@ export class AuthService {
       id,
       username,
     };
-    const token = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '30m' });
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '30d' });
 
-    response.cookie('access_token', token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      expires: new Date(Date.now() + 1 * 24 * 60 * 1000),
-    });
-
-    return { access_token: token, message: EAuth.LOGIN_SUCCESS };
+    return { accessToken, refreshToken, message: EAuth.LOGIN_SUCCESS };
   }
 
   logout(res) {
+    res.clearCookie('refresh_token');
     res.clearCookie('access_token');
+    res.cookie('logged_in', false, commonCookieOptions);
 
     return {
       message: EAuth.LOGOUT_SUCCESS,
     };
+  }
+
+  async getUserByToken(accessToken) {
+    try {
+      const user = this.jwtService.decode(
+        accessToken,
+        this.configService.get('JWT_SECRET'),
+      );
+      return user;
+    } catch (error) {
+      throw new BadRequestException(error);
+    }
+  }
+
+  async refreshToken(req) {
+    const refreshToken = req.cookies.refresh_token;
+    if (!refreshToken) throw new UnauthorizedException();
+    try {
+      this.jwtService.verify(
+        refreshToken,
+        this.configService.get('JWT_SECRET'),
+      );
+    } catch (error) {
+      throw new UnauthorizedException();
+    }
+    const user = this.jwtService.decode(
+      refreshToken,
+      this.configService.get('JWT_SECRET'),
+    );
+
+    if (typeof user === 'object' && user !== null) {
+      const { id, username, email } = user as Partial<IUser>;
+      const payload = {
+        email,
+        id,
+        username,
+      };
+      const accessToken = this.jwtService.sign(payload, { expiresIn: '30m' });
+      return { accessToken };
+    }
   }
 }
