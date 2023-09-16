@@ -86,7 +86,7 @@ export class AuthController {
   async callback(@Req() req, @Res({ passthrough: true }) res) {
     const { accessToken, refreshToken } = await this.authService.login(
       req,
-      false,
+      true,
     );
     res.cookie('refresh_token', refreshToken, httpOnlyCookieOptions);
     res.cookie('access_token', accessToken, commonCookieOptions);

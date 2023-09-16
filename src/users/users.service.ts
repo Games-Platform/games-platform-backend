@@ -32,9 +32,7 @@ export class UsersService {
 
     const { id, username, email } = user;
 
-    const token = this.jwtService.sign({ id, username, email });
-
-    return { id, username, email, token };
+    return { id, username, email };
   }
 
   async findOneByEmail(email: string, isGoogle: boolean) {

@@ -31,7 +31,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
         email: emails[0].value,
       };
 
-      this.authService.saveGoogleUser(displayName, emails[0].value);
+      await this.authService.saveGoogleUser(displayName, emails[0].value);
 
       done(null, user);
     } catch (error) {
