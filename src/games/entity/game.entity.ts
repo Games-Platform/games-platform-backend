@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { UserGame } from 'src/user-game/entity/user-game.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Game {
@@ -42,4 +43,7 @@ export class Game {
     default: 1,
   })
   rating_votes: number;
+
+  @OneToMany(() => UserGame, ({ game }) => game)
+  game: UserGame[];
 }
