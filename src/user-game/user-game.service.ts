@@ -31,6 +31,7 @@ export class UserGameService {
     const userGame = this.userGameRepository.create({
       ...createUserGameDto,
       game: currentGame,
+      user,
     });
 
     return await this.userGameRepository.save(userGame);

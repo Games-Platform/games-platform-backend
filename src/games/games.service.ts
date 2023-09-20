@@ -37,14 +37,14 @@ export class GamesService {
     }
   }
 
-  async setRatingVote({ game_id, value }: IGameRequest) {
+  async setRatingVote({ game_id, value, vote }: IGameRequest) {
     try {
       const game = await this.gameRepository.findOne({ where: { game_id } });
 
       await this.gameRepository.save({
         ...game,
         rating_votes:
-          game.games_platform_rating === 0 ? 1 : game.rating_votes + 1,
+          game.games_platform_rating === 0 ? 1 : game.rating_votes + vote,
         games_platform_rating: game.games_platform_rating + value,
       });
     } catch (error) {
