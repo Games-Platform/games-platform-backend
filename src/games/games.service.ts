@@ -19,6 +19,10 @@ export class GamesService {
 
       if (existGame) return;
 
+      if (!game.metacritic) {
+        game.metacritic = 0;
+      }
+
       return await this.gameRepository.save(game);
     } catch (error) {
       throw new Error(error);
