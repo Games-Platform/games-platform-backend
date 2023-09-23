@@ -7,6 +7,7 @@ import { PassportModule } from '@nestjs/passport';
 import { GoogleStrategy } from './auth/strategies/google.strategy';
 import { GamesModule } from './games/games.module';
 import { dataSourceOptions } from './db/data-source';
+import { UserGameModule } from './user-game/user-game.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { dataSourceOptions } from './db/data-source';
     AuthModule,
     PassportModule.register({ session: true }),
     GamesModule,
+    UserGameModule,
   ],
   controllers: [],
   providers: [GoogleStrategy],

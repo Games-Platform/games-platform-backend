@@ -18,4 +18,5 @@ export enum EAuth {
 export interface IGameRequest {
   game_id: string;
   value: number;
+  vote: 1 | 0;
 }
