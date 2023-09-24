@@ -8,6 +8,7 @@ import { GoogleStrategy } from './auth/strategies/google.strategy';
 import { GamesModule } from './games/games.module';
 import { dataSourceOptions } from './db/data-source';
 import { UserGameModule } from './user-game/user-game.module';
+import { GamePlatformModule } from './game-platform/game-platform.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UserGameModule } from './user-game/user-game.module';
     PassportModule.register({ session: true }),
     GamesModule,
     UserGameModule,
+    GamePlatformModule,
   ],
   controllers: [],
   providers: [GoogleStrategy],

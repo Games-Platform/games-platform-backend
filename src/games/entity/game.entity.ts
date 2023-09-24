@@ -1,5 +1,13 @@
+import { GamePlatform } from 'src/game-platform/entity/game-platform.entity';
 import { UserGame } from 'src/user-game/entity/user-game.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Game {
@@ -33,6 +41,12 @@ export class Game {
   name: string;
 
   @Column({
+    nullable: true,
+    default: '',
+  })
+  released: string;
+
+  @Column({
     nullable: false,
     default: 0,
   })
@@ -46,4 +60,8 @@ export class Game {
 
   @OneToMany(() => UserGame, ({ game }) => game)
   game: UserGame[];
+
+  @ManyToMany(() => GamePlatform, (gamePlatform) => gamePlatform.games)
+  @JoinTable()
+  gamePlatforms: GamePlatform[];
 }

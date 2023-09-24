@@ -41,7 +41,7 @@ export class UsersService {
     });
 
     if (!user && !isGoogle) {
-      throw new BadRequestException(EAuth.INVALID_CRENEDTIALS);
+      throw new BadRequestException(EAuth.INVALID_CREDENTIALS);
     }
 
     return user;
