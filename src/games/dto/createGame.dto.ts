@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateGameDto {
   @IsNotEmpty()
@@ -14,10 +14,17 @@ export class CreateGameDto {
   metacritic: number;
 
   @IsNotEmpty()
+  @IsNumber()
+  released: string;
+
+  @IsNotEmpty()
   @IsString()
   name: string;
 
   @IsNotEmpty()
   @IsNumber()
   games_platform_rating: number;
+
+  @IsArray()
+  gamePlatforms?: string[];
 }
